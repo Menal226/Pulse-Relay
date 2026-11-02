@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pulse Relay</string>
+    <string name="channel_name">Heart rate streaming</string>
+    <string name="channel_description">Ongoing heart-rate connection status</string>
+    <string name="notification_title">Pulse Relay</string>
+    <string name="notification_stop">Stop</string>
+</resources>
