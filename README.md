@@ -14,17 +14,25 @@ heart rate to a WebSocket server such as the one on [my website](https://menal.n
 - Reconnects only when internet is available. Readings while disconnected are
   dropped; there is no queue, batching, or replay.
 - Doesn't send any messages when there is no current reading.
+- For intervals longer than 15 seconds, samples for a 15-20 second window and
+  then turns the heart-rate sensor off until the next window.
 
-The interval can be 1 second to 1 hour. The default is 1 second.
+The interval can be 1 second to 1 hour. The default is 30 seconds. Intervals of
+15 seconds or less keep the sensor on continuously; longer intervals use the
+duty-cycled window.
 
 ## Setup
 
 1. Install the APK (usually using adb).
 2. Open **Setup** and allow the heart-rate sensor, background sensors
-   (**All the time**), and notifications.
+   (**All the time**), notifications, and **Exact alarms** if offered.
 3. Open **Settings** and enter the WebSocket endpoint, token, and interval.
 4. Tap **Test connection**, then **Save**.
 5. Tap **Start**.
+
+Exact alarms let the watch wake reliably for each 30-second window. If that
+permission is unavailable, the app falls back to an inexact alarm and the
+timing may drift while the watch is dozing.
 
 Enter only the token in the token field, not `Bearer `. The app adds the
 `Authorization: Bearer <token>` header.
@@ -58,11 +66,9 @@ with HTTP 401.
 
 ## Notes
 
-- A 1-second interval drains the battery quickly; increase it if you do not need
-  live updates.
+- A 1-second interval drains the battery quickly; 30 seconds is the default and
+  is a better balance for continuous use.
 - `ws://` is unencrypted. Use `wss://` outside a trusted local network.
 - After a reboot, the app tries to resume, but Android may require one tap on
   the notification.
 - This is a personal tool, not a medical device.
-
-

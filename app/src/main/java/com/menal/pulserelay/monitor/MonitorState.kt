@@ -20,7 +20,7 @@ data class MonitorSnapshot(
     val connection: ConnectionState = ConnectionState.DISCONNECTED,
     val error: String? = null,
     val enabled: Boolean = false,
-    val intervalSec: Int = 1,
+    val intervalSec: Int = 30,
 )
 
 class MonitorState {

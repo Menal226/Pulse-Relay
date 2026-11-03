@@ -7,8 +7,13 @@ import android.net.Network
 import android.net.NetworkCapabilities
 
 /**
- * Reports whether a validated internet connection is currently available.
+ * Reports whether an internet-capable network is currently available.
  * No connection attempts are made by the app while this is false.
+ *
+ * Validation is deliberately not required: on Wear OS a Bluetooth proxy can
+ * briefly report INTERNET before VALIDATED after the phone reconnects. The
+ * WebSocket failure/backoff path handles a network that is present but not
+ * actually usable.
  */
 class NetworkMonitor(
     context: Context,
@@ -35,13 +40,22 @@ class NetworkMonitor(
         ) {
             report()
         }
+
+        override fun onUnavailable() {
+            report()
+        }
     }
 
     @SuppressLint("MissingPermission")
     fun start() {
         if (registered) return
         registered = true
-        connectivityManager.registerDefaultNetworkCallback(callback)
+        try {
+            connectivityManager.registerDefaultNetworkCallback(callback)
+        } catch (e: Exception) {
+            registered = false
+            throw e
+        }
         report()
     }
 
@@ -75,7 +89,6 @@ class NetworkMonitor(
     private fun checkOnline(): Boolean {
         val network = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
-        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 }

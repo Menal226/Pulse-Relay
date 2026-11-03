@@ -10,6 +10,7 @@ import kotlin.math.roundToInt
 
 class HeartRateSampler(
     context: Context,
+    private val preferWakeUpSensor: Boolean,
     private val onReading: (bpm: Int, atElapsedMs: Long) -> Unit,
     private val onError: (String) -> Unit,
 ) : SensorEventListener {
@@ -24,8 +25,17 @@ class HeartRateSampler(
     private var lastReadingAt = 0L
 
     fun start(): Boolean {
-        val wakeUp = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE, true)
-        sensor = wakeUp ?: sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
+        val preferred = sensorManager.getDefaultSensor(
+            Sensor.TYPE_HEART_RATE,
+            preferWakeUpSensor,
+        )
+        val fallback = sensorManager.getDefaultSensor(
+            Sensor.TYPE_HEART_RATE,
+            !preferWakeUpSensor,
+        )
+        sensor = preferred
+            ?: fallback
+            ?: sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
         val selected = sensor
         if (selected == null) {
             onError("Heart-rate sensor is not available")

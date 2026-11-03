@@ -19,7 +19,7 @@ class SettingsStore(context: Context) {
     fun load(): StoredSettings = StoredSettings(
         endpoint = prefs.getString(KEY_ENDPOINT, "").orEmpty(),
         token = prefs.getString(KEY_TOKEN, "").orEmpty(),
-        intervalSec = prefs.getInt(KEY_INTERVAL, 1).coerceIn(
+        intervalSec = prefs.getInt(KEY_INTERVAL, 30).coerceIn(
             SettingsValidation.MIN_INTERVAL_SEC,
             SettingsValidation.MAX_INTERVAL_SEC,
         ),

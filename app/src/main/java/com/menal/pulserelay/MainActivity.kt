@@ -60,7 +60,7 @@ class MainActivity : ComponentActivity() {
             }
 
             fun requestForegroundPermissions() {
-                val requested = mutableListOf(Manifest.permission.BODY_SENSORS)
+                val requested = mutableListOf(PermissionChecks.heartRatePermission())
                 if (Build.VERSION.SDK_INT >= 33) {
                     requested += Manifest.permission.POST_NOTIFICATIONS
                 }
@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
             fun requestBackgroundPermission() {
                 if (Build.VERSION.SDK_INT >= 33) {
                     permissionLauncher.launch(
-                        arrayOf(Manifest.permission.BODY_SENSORS_BACKGROUND)
+                        arrayOf(PermissionChecks.backgroundHeartRatePermission())
                     )
                 } else {
                     PermissionChecks.openAppDetails(this)
@@ -140,6 +140,7 @@ class MainActivity : ComponentActivity() {
                             permissions = permissionState,
                             onRequestForeground = ::requestForegroundPermissions,
                             onRequestBackground = ::requestBackgroundPermission,
+                            onExactAlarms = { PermissionChecks.requestExactAlarms(this) },
                             onOpenSettings = { PermissionChecks.openAppDetails(this) },
                             onBattery = { PermissionChecks.requestBatteryExemption(this) },
                             onBack = { screen = AppScreen.MAIN },

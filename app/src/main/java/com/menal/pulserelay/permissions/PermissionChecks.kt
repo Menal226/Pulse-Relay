@@ -2,6 +2,7 @@ package com.menal.pulserelay.permissions
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlarmManager
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -18,6 +19,7 @@ data class PermissionStatus(
     val notifications: Boolean,
     val batteryExempt: Boolean,
     val batteryOptimizationSupported: Boolean,
+    val exactAlarms: Boolean = false,
 ) {
     val ready: Boolean
         get() = sensors && backgroundSensors && notifications
@@ -34,17 +36,28 @@ object PermissionChecks {
         notifications = hasNotifications(context),
         batteryExempt = isBatteryExempt(context),
         batteryOptimizationSupported = canRequestBatteryExemption(context),
+        exactAlarms = hasExactAlarms(context),
     )
 
     fun hasSensors(context: Context): Boolean {
-        if (check(context, Manifest.permission.BODY_SENSORS)) return true
-        return Build.VERSION.SDK_INT >= 36 && check(context, READ_HEART_RATE)
+        if (check(context, heartRatePermission())) return true
+        return check(context, Manifest.permission.BODY_SENSORS)
     }
 
     fun hasBackgroundSensors(context: Context): Boolean {
-        if (check(context, Manifest.permission.BODY_SENSORS_BACKGROUND)) return true
-        return Build.VERSION.SDK_INT >= 36 && check(context, READ_HEALTH_BACKGROUND)
+        if (check(context, backgroundHeartRatePermission())) return true
+        return check(context, Manifest.permission.BODY_SENSORS_BACKGROUND)
     }
+
+    fun heartRatePermission(): String =
+        if (Build.VERSION.SDK_INT >= 36) READ_HEART_RATE else Manifest.permission.BODY_SENSORS
+
+    fun backgroundHeartRatePermission(): String =
+        if (Build.VERSION.SDK_INT >= 36) {
+            READ_HEALTH_BACKGROUND
+        } else {
+            Manifest.permission.BODY_SENSORS_BACKGROUND
+        }
 
     fun hasNotifications(context: Context): Boolean {
         if (Build.VERSION.SDK_INT < 33) return true
@@ -54,6 +67,27 @@ object PermissionChecks {
     fun isBatteryExempt(context: Context): Boolean {
         val powerManager = context.getSystemService(PowerManager::class.java)
         return powerManager.isIgnoringBatteryOptimizations(context.packageName)
+    }
+
+    fun hasExactAlarms(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < 31) return true
+        val alarmManager = context.getSystemService(AlarmManager::class.java)
+        return alarmManager.canScheduleExactAlarms()
+    }
+
+    fun requestExactAlarms(context: Context) {
+        if (Build.VERSION.SDK_INT < 31 || hasExactAlarms(context)) return
+        val intent = Intent(
+            Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+            Uri.parse("package:${context.packageName}"),
+        )
+        try {
+            context.startActivity(intent)
+        } catch (_: ActivityNotFoundException) {
+            openAppDetails(context)
+        } catch (_: SecurityException) {
+            openAppDetails(context)
+        }
     }
 
     fun canRequestBatteryExemption(context: Context): Boolean {

@@ -2,6 +2,7 @@ package com.menal.pulserelay.ui
 
 import android.app.Activity
 import android.content.Intent
+import android.os.Build
 import android.text.InputType
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -287,6 +288,7 @@ fun SetupScreen(
     permissions: PermissionStatus,
     onRequestForeground: () -> Unit,
     onRequestBackground: () -> Unit,
+    onExactAlarms: () -> Unit,
     onOpenSettings: () -> Unit,
     onBattery: () -> Unit,
     onBack: () -> Unit,
@@ -335,6 +337,24 @@ fun SetupScreen(
                     action = "Allow",
                     onAction = onRequestForeground,
                 )
+            }
+            if (Build.VERSION.SDK_INT >= 31) {
+                item {
+                    PermissionRow(
+                        title = "Exact alarms",
+                        granted = permissions.exactAlarms,
+                        action = "Allow",
+                        onAction = onExactAlarms,
+                    )
+                }
+                item {
+                    Text(
+                        text = "Needed for reliable 20-30 second sampling windows.",
+                        fontSize = 9.sp,
+                        color = Color(0xFFB0B0B0),
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
             item {
                 if (permissions.batteryOptimizationSupported) {

@@ -76,10 +76,10 @@ class PulseSocket(
         try {
             val newSocket = client.newWebSocket(request, socketListener)
             webSocket = newSocket
-        } catch (e: IllegalArgumentException) {
+        } catch (e: Exception) {
             if (myGeneration == generation) {
                 open = false
-                listener.onDisconnected(e.message ?: "invalid URL")
+                listener.onDisconnected(e.message ?: "connection failed")
             }
         }
     }
